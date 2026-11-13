@@ -13,7 +13,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20261111_filius_v2" />
+  <link rel="stylesheet" href="style.css?v=20261112_clean_v3" />
 </head>
 
 <body>
@@ -85,8 +85,19 @@
 
       <div class="views-stage">
 
-        <!-- POHLED 1: SLOUPCE DOSTUPNOSTI -->
+        <!-- POHLED 1: SLOUPCE DOSTUPNOSTI (Kompaktní přehled s rozbalovacími grafy) -->
         <section id="view-columns" class="view-panel is-active" role="tabpanel">
+          <div class="services-header-strip">
+            <span class="services-count-label" id="services-count-label">Klíčové servery a služby</span>
+            <button type="button" class="btn-toggle-all" id="btn-toggle-all" onclick="toggleAllServiceDetails()">
+              <svg class="ui-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="7 13 12 18 17 13" />
+                <polyline points="7 6 12 11 17 6" />
+              </svg>
+              <span id="toggle-all-text">Rozbalit všechny grafy</span>
+            </button>
+          </div>
+
           <div class="services-list" id="services-list">
             <div class="service-skeleton"></div>
             <div class="service-skeleton"></div>
@@ -100,7 +111,7 @@
           </div>
         </section>
 
-        <!-- POHLED 2: SÍŤOVÉ ZAPOJENÍ (FILIUS NETWORK SIMULATOR STYLE) -->
+        <!-- POHLED 2: SÍŤOVÉ ZAPOJENÍ (PŘEHLEDNÉ 3-VRSTVÉ ZAPOJENÍ BEZ PÁTEŘNÍHO BLOKU) -->
         <section id="view-cables" class="view-panel" role="tabpanel" aria-hidden="true">
 
           <div class="cable-alert-strip" id="cable-alert-strip" hidden>
@@ -127,10 +138,6 @@
                   <filter id="filius-glow-blue" x="-20%" y="-20%" width="140%" height="140%">
                     <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#0a67e5" flood-opacity="0.8" />
                   </filter>
-                  <linearGradient id="rj45-plug-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#262832" />
-                    <stop offset="100%" stop-color="#0e1014" />
-                  </linearGradient>
                   <linearGradient id="rj45-boot-grad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stop-color="#2e313d" />
                     <stop offset="100%" stop-color="#14161c" />
@@ -142,9 +149,10 @@
                 <g id="cables-packets-group"></g>
                 <g id="cables-plugs-group"></g>
                 <g id="cables-badges-group"></g>
+                <g id="cables-interactive-group"></g>
               </svg>
 
-              <!-- Řada 1: Vstupní brány -->
+              <!-- Řada 1: Vstupní brány & Edge uzly -->
               <div class="topo-row topo-row--3">
                 <div class="topo-node" id="node-vps_smp" data-node-id="vps_smp">
                   <div class="topo-node-head">
@@ -152,9 +160,10 @@
                     <span class="topo-name">Vstupní brána SMP</span>
                     <span class="topo-state tabular-nums" id="lat-vps_smp">Běží</span>
                   </div>
-                  <p class="topo-desc">Ochrana a směrování mychalsmp.xyz</p>
+                  <p class="topo-desc">TCPShield Edge • mychalsmp.xyz (25565)</p>
                   <div class="topo-ports">
-                    <div class="port-jack" id="port-vps_smp-out" title="Výstupní port"></div>
+                    <div class="port-jack" id="port-vps_smp-nb" title="Primární WireGuard tunel na Notebook"></div>
+                    <div class="port-jack" id="port-vps_smp-pc" title="Záložní WireGuard trasa na PC"></div>
                   </div>
                 </div>
 
@@ -164,9 +173,10 @@
                     <span class="topo-name">Vstupní brána PvP &amp; Voice</span>
                     <span class="topo-state tabular-nums" id="lat-vpn_tunnel">Běží</span>
                   </div>
-                  <p class="topo-desc">Směrování PvP a hlasového chatu</p>
+                  <p class="topo-desc">Oracle VPS • pvp.mychalsmp.xyz</p>
                   <div class="topo-ports">
-                    <div class="port-jack" id="port-vpn_tunnel-out" title="Výstupní port"></div>
+                    <div class="port-jack" id="port-vpn_tunnel-voice" title="Voice Chat UDP tunel (24454)"></div>
+                    <div class="port-jack" id="port-vpn_tunnel-pvp" title="PvP WireGuard tunel (25566)"></div>
                   </div>
                 </div>
 
@@ -176,147 +186,127 @@
                     <span class="topo-name">Webová brána</span>
                     <span class="topo-state tabular-nums" id="lat-api_6767111">Běží</span>
                   </div>
-                  <p class="topo-desc">Zabezpečené propojení webu a statistik</p>
+                  <p class="topo-desc">Cloudflare Edge • join.mychalsmp.xyz</p>
                   <div class="topo-ports">
-                    <div class="port-jack" id="port-api_6767111-out" title="Výstupní port"></div>
+                    <div class="port-jack" id="port-api_6767111-lenovo" title="Cloudflare HTTPS tunel na Skříň"></div>
                   </div>
                 </div>
               </div>
 
-              <!-- Řada 2: Páteřní síťové spojení -->
-              <div class="topo-row topo-row--1">
-                <div class="topo-node topo-node--switch" id="node-home_internet" data-node-id="home_internet">
-                  <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-home_internet-in1" title="Vstup z brány SMP"></div>
-                    <div class="port-jack" id="port-home_internet-in2" title="Vstup z brány PvP/Voice"></div>
-                    <div class="port-jack" id="port-home_internet-in3" title="Vstup z Webové brány"></div>
-                  </div>
-                  <div class="topo-node-head">
-                    <span class="topo-led"></span>
-                    <span class="topo-name">Páteřní síťové spojení</span>
-                    <span class="topo-state tabular-nums" id="lat-home_internet">Běží</span>
-                  </div>
-                  <p class="topo-desc">Centrální distribuce provozu na fyzické servery</p>
-                  <div class="topo-ports">
-                    <div class="port-jack" id="port-home_internet-out1" title="Výstup na herní server"></div>
-                    <div class="port-jack" id="port-home_internet-out2" title="Výstup na server služeb"></div>
-                    <div class="port-jack" id="port-home_internet-out3" title="Výstup na záložní server"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Řada 3: Fyzické herní servery -->
+              <!-- Řada 2: Fyzické dedikované servery -->
               <div class="topo-row topo-row--3">
                 <div class="topo-node" id="node-home_nb" data-node-id="home_nb">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-home_nb-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-home_nb-in_smp" title="Vstup SMP z brány SMP"></div>
+                    <div class="port-jack" id="port-home_nb-in_voice" title="Vstup Voice z brány PvP/Voice"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Hlavní herní server</span>
                     <span class="topo-state tabular-nums" id="lat-home_nb">Běží</span>
                   </div>
-                  <p class="topo-desc">Provoz hlavního SMP a Voice Chatu</p>
+                  <p class="topo-desc">Notebook (cachyos-nb) • 10.9.0.3</p>
                   <div class="topo-ports">
-                    <div class="port-jack" id="port-home_nb-out1" title="Port pro SMP"></div>
-                    <div class="port-jack" id="port-home_nb-out2" title="Port pro Voice Chat"></div>
-                  </div>
-                </div>
-
-                <div class="topo-node" id="node-vpn_lenovo" data-node-id="vpn_lenovo">
-                  <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-vpn_lenovo-in" title="Vstupní port"></div>
-                  </div>
-                  <div class="topo-node-head">
-                    <span class="topo-led"></span>
-                    <span class="topo-name">Server systémových služeb</span>
-                    <span class="topo-state tabular-nums" id="lat-vpn_lenovo">Běží</span>
-                  </div>
-                  <p class="topo-desc">Provoz PvP arén, přihlašování a Discord bota</p>
-                  <div class="topo-ports">
-                    <div class="port-jack" id="port-vpn_lenovo-out1" title="Port pro PvP"></div>
-                    <div class="port-jack" id="port-vpn_lenovo-out2" title="Port pro Přihlašování"></div>
-                    <div class="port-jack" id="port-vpn_lenovo-out3" title="Port pro Discord Bota"></div>
+                    <div class="port-jack" id="port-home_nb-out_smp" title="Lokální proces SMP (Port 25565)"></div>
+                    <div class="port-jack" id="port-home_nb-out_voice" title="Lokální Voice Chat (Port 24454)"></div>
                   </div>
                 </div>
 
                 <div class="topo-node" id="node-home_pc" data-node-id="home_pc">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-home_pc-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-home_pc-in" title="Vstup záložní trasy SMP"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Záložní herní server</span>
                     <span class="topo-state tabular-nums" id="lat-home_pc">Záložní</span>
                   </div>
-                  <p class="topo-desc">Připraven okamžitě převzít provoz při údržbě</p>
+                  <p class="topo-desc">Herní PC (Standby) • 10.9.0.4</p>
                   <div class="topo-ports">
-                    <div class="port-jack" id="port-home_pc-out1" title="Záložní port"></div>
+                    <div class="port-jack" id="port-home_pc-out" title="Záložní proces SMP"></div>
+                  </div>
+                </div>
+
+                <div class="topo-node" id="node-vpn_lenovo" data-node-id="vpn_lenovo">
+                  <div class="topo-ports topo-ports--top">
+                    <div class="port-jack" id="port-vpn_lenovo-in_pvp" title="Vstup PvP z brány PvP/Voice"></div>
+                    <div class="port-jack" id="port-vpn_lenovo-in_web" title="Vstup Web/API z Webové brány"></div>
+                  </div>
+                  <div class="topo-node-head">
+                    <span class="topo-led"></span>
+                    <span class="topo-name">Server systémových služeb</span>
+                    <span class="topo-state tabular-nums" id="lat-vpn_lenovo">Běží</span>
+                  </div>
+                  <p class="topo-desc">Lenovo Skříň (G50-80) • 10.9.0.2</p>
+                  <div class="topo-ports">
+                    <div class="port-jack" id="port-vpn_lenovo-out_pvp" title="Lokální proces PvP (Port 25566)"></div>
+                    <div class="port-jack" id="port-vpn_lenovo-out_auth" title="ViAuth SSO služba (Port 3070)"></div>
+                    <div class="port-jack" id="port-vpn_lenovo-out_bot" title="Discord Bot & MycoWay (Port 3000)"></div>
                   </div>
                 </div>
               </div>
 
-              <!-- Řada 4: Koncové herní a komunitní služby -->
+              <!-- Řada 3: Koncové herní a systémové služby -->
               <div class="topo-row topo-row--5">
                 <div class="topo-node" id="node-minecraft_smp" data-node-id="minecraft_smp">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-minecraft_smp-in1" title="Primární port"></div>
-                    <div class="port-jack" id="port-minecraft_smp-in2" title="Záložní port"></div>
+                    <div class="port-jack" id="port-minecraft_smp-in_nb" title="Primární linka z Notebooku"></div>
+                    <div class="port-jack" id="port-minecraft_smp-in_pc" title="Záložní linka z PC"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Minecraft SMP</span>
                     <span class="topo-state tabular-nums" id="lat-minecraft_smp">-- ms</span>
                   </div>
-                  <p class="topo-desc">Hlavní survival svět</p>
+                  <p class="topo-desc">Hlavní survival svět (mychalsmp.xyz)</p>
                 </div>
 
                 <div class="topo-node" id="node-voice_chat" data-node-id="voice_chat">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-voice_chat-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-voice_chat-in" title="Linka z Notebooku"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Voice Chat</span>
                     <span class="topo-state tabular-nums" id="lat-voice_chat">Běží</span>
                   </div>
-                  <p class="topo-desc">Hlasový chat ve hře</p>
+                  <p class="topo-desc">Prostorový hlasový chat (UDP 24454)</p>
                 </div>
 
                 <div class="topo-node" id="node-minecraft_pvp" data-node-id="minecraft_pvp">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-minecraft_pvp-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-minecraft_pvp-in" title="Linka ze Skříně"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Minecraft PvP</span>
                     <span class="topo-state tabular-nums" id="lat-minecraft_pvp">-- ms</span>
                   </div>
-                  <p class="topo-desc">Duely a arény</p>
+                  <p class="topo-desc">Duely a arény (pvp.mychalsmp.xyz)</p>
                 </div>
 
                 <div class="topo-node" id="node-auth_api" data-node-id="auth_api">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-auth_api-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-auth_api-in" title="Linka ze Skříně"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Přihlašování</span>
                     <span class="topo-state tabular-nums" id="lat-auth_api">-- ms</span>
                   </div>
-                  <p class="topo-desc">Ověřování účtů</p>
+                  <p class="topo-desc">ViAuth ověřování účtů &amp; SSO</p>
                 </div>
 
                 <div class="topo-node" id="node-discord_bot" data-node-id="discord_bot">
                   <div class="topo-ports topo-ports--top">
-                    <div class="port-jack" id="port-discord_bot-in" title="Vstupní port"></div>
+                    <div class="port-jack" id="port-discord_bot-in" title="Linka ze Skříně"></div>
                   </div>
                   <div class="topo-node-head">
                     <span class="topo-led"></span>
                     <span class="topo-name">Discord Bot</span>
                     <span class="topo-state tabular-nums" id="lat-discord_bot">-- ms</span>
                   </div>
-                  <p class="topo-desc">Propojení s Discordem</p>
+                  <p class="topo-desc">Statistiky, kity &amp; MycoWay</p>
                 </div>
               </div>
 
@@ -344,7 +334,7 @@
     </div>
   </footer>
 
-  <script src="script.js?v=20261111_filius_v2"></script>
+  <script src="script.js?v=20261112_clean_v3"></script>
 </body>
 
 </html>
