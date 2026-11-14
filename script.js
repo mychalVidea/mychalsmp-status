@@ -753,12 +753,33 @@ function renderPatchbayTopology() {
   }
 }
 
+function renderKarelAnnouncement(ann) {
+  const bannerEl = document.getElementById("karel-banner");
+  if (!bannerEl) return;
+  if (!ann || !ann.statement) {
+    bannerEl.hidden = true;
+    return;
+  }
+  const textEl = document.getElementById("karel-text-quote");
+  const chipEl = document.getElementById("karel-svc-chip");
+  const tsEl = document.getElementById("karel-ts-lbl");
+
+  if (textEl) textEl.textContent = `„${ann.statement}“`;
+  if (chipEl) chipEl.textContent = ann.service_name || "Infrastruktura";
+  if (tsEl && ann.created_at) {
+    const d = new Date(ann.created_at * 1000);
+    tsEl.textContent = `Publikováno v ${d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}`;
+  }
+  bannerEl.hidden = false;
+}
+
 async function loadTelemetry() {
   const cols = window.innerWidth < 640 ? 32 : 48;
   try {
     const data = await fetchStatusData(cols);
     latestTelemetry = data;
     renderBanner(data);
+    renderKarelAnnouncement(data.announcement);
     renderColumnsView(data);
     renderIncidents(data.incidents || []);
     if (currentView === "cables") {
