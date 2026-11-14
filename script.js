@@ -19,32 +19,32 @@ const PUBLIC_LABELS = {
   minecraft_smp: {
     name: "Minecraft SMP Server",
     desc: "Hlavní survival svět (mychalsmp.xyz)",
-    route: "TCPShield Edge → Notebook (10.9.0.3)"
+    route: "SMP Edge Proxy → Aplikační Uzel Alfa"
   },
   minecraft_pvp: {
     name: "Minecraft PvP Server",
     desc: "Duely a bojové arény (pvp.mychalsmp.xyz)",
-    route: "Oracle VPS (Port 25566) → Skříň (10.9.0.2)"
+    route: "PvP Edge Gateway → Aplikační Uzel Beta"
   },
   voice_chat: {
     name: "Voice Chat ve hře",
     desc: "Prostorový hlasový chat na SMP",
-    route: "Oracle VPS (UDP 24454) → Notebook (10.9.0.3)"
+    route: "Voice Gateway → Aplikační Uzel Alfa"
   },
   auth_api: {
     name: "Přihlašování a účty",
     desc: "Ověřování hráčů & ViAuth SSO brána",
-    route: "Cloudflare Edge → Skříň ViAuth (Port 3070)"
+    route: "Cloudflare Edge → Aplikační Uzel Beta"
   },
   discord_bot: {
     name: "Discord Bot & Propojení serverů",
     desc: "Synchronizace statistik, kitů a přenosů mezi servery",
-    route: "Lokální REST API (Port 3000) → Skříň"
+    route: "Interní sběrnice MycoWay → Uzel Beta"
   },
   api_6767111: {
     name: "Webové rozhraní a statistiky",
     desc: "Napojení webu na herní databázi",
-    route: "Cloudflare Edge → Skříň Databáze"
+    route: "Cloudflare Edge → Systémová databáze"
   },
   vps_smp: {
     name: "Vstupní brána SMP",
@@ -55,16 +55,16 @@ const PUBLIC_LABELS = {
     desc: "Směrování PvP serveru a hlasového chatu"
   },
   home_nb: {
-    name: "Hlavní herní server",
-    desc: "Fyzický server pro běh SMP a Voice Chatu (Notebook)"
+    name: "Aplikační uzel Alfa",
+    desc: "Vyhrazený aplikační cluster pro herní svět SMP a prostorový hlasový chat"
   },
   home_pc: {
-    name: "Záložní herní server",
-    desc: "Záložní server připravený převzít SMP při údržbě (Herní PC)"
+    name: "Aplikační uzel Gama",
+    desc: "Záložní failover cluster připravený k okamžitému převzetí provozu"
   },
   vpn_lenovo: {
-    name: "Server systémových služeb",
-    desc: "Fyzický server pro PvP, přihlašování a Discord bota (Skříň)"
+    name: "Aplikační uzel Beta",
+    desc: "Vyhrazený síťový cluster pro PvP arény, autentizaci a synchronizaci dat"
   }
 };
 
@@ -77,7 +77,7 @@ const PATCH_CABLES = [
     toPort: "port-home_nb-in_smp",
     fromNode: "vps_smp",
     toNode: "home_nb",
-    label: "SMP WireGuard tunel (TCP 25565)",
+    label: "Páteřní SMP trasa (Šifrované spojení)",
     packetDuration: 1.8
   },
   {
@@ -86,7 +86,7 @@ const PATCH_CABLES = [
     toPort: "port-home_pc-in",
     fromNode: "vps_smp",
     toNode: "home_pc",
-    label: "Záložní SMP trasa (Standby)",
+    label: "Záložní failover trasa (Standby)",
     packetDuration: 2.6
   },
   {
@@ -95,7 +95,7 @@ const PATCH_CABLES = [
     toPort: "port-home_nb-in_voice",
     fromNode: "vpn_tunnel",
     toNode: "home_nb",
-    label: "Voice Chat UDP tunel (24454)",
+    label: "Hlasová páteřní trasa (Prostorový zvuk)",
     packetDuration: 1.6
   },
   {
@@ -104,7 +104,7 @@ const PATCH_CABLES = [
     toPort: "port-vpn_lenovo-in_pvp",
     fromNode: "vpn_tunnel",
     toNode: "vpn_lenovo",
-    label: "PvP WireGuard tunel (25566)",
+    label: "Páteřní PvP trasa (Šifrované spojení)",
     packetDuration: 2.1
   },
   {
@@ -113,7 +113,7 @@ const PATCH_CABLES = [
     toPort: "port-vpn_lenovo-in_web",
     fromNode: "api_6767111",
     toNode: "vpn_lenovo",
-    label: "Cloudflare HTTPS tunel",
+    label: "Zabezpečený HTTPS tunel",
     packetDuration: 1.9
   },
 
@@ -124,7 +124,7 @@ const PATCH_CABLES = [
     toPort: "port-minecraft_smp-in_nb",
     fromNode: "home_nb",
     toNode: "minecraft_smp",
-    label: "Lokální proces SMP (25565)",
+    label: "Aplikační služba SMP (Beacon Core)",
     packetDuration: 1.4
   },
   {
@@ -133,7 +133,7 @@ const PATCH_CABLES = [
     toPort: "port-voice_chat-in",
     fromNode: "home_nb",
     toNode: "voice_chat",
-    label: "Lokální Voice Chat (24454)",
+    label: "Hlasová služba (Voice Router)",
     packetDuration: 1.5
   },
   {
@@ -142,7 +142,7 @@ const PATCH_CABLES = [
     toPort: "port-minecraft_smp-in_pc",
     fromNode: "home_pc",
     toNode: "minecraft_smp",
-    label: "Záložní instance SMP",
+    label: "Failover instance SMP",
     packetDuration: 2.7
   },
   {
@@ -151,7 +151,7 @@ const PATCH_CABLES = [
     toPort: "port-minecraft_pvp-in",
     fromNode: "vpn_lenovo",
     toNode: "minecraft_pvp",
-    label: "Lokální proces PvP (25566)",
+    label: "Aplikační služba PvP (Wither Arena)",
     packetDuration: 2.0
   },
   {
@@ -160,7 +160,7 @@ const PATCH_CABLES = [
     toPort: "port-auth_api-in",
     fromNode: "vpn_lenovo",
     toNode: "auth_api",
-    label: "ViAuth SSO služba (3070)",
+    label: "Autentizační služba (Iron Golem SSO)",
     packetDuration: 1.8
   },
   {
@@ -169,7 +169,7 @@ const PATCH_CABLES = [
     toPort: "port-discord_bot-in",
     fromNode: "vpn_lenovo",
     toNode: "discord_bot",
-    label: "Discord Bot & REST API (3000)",
+    label: "Systémová brána (MycoWay Core)",
     packetDuration: 2.0
   }
 ];
