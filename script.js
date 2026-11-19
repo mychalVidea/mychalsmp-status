@@ -9,6 +9,16 @@ const STATUS_API_ENDPOINTS = [
 ];
 const STATUS_API_KEY = "msmp_stat_v1_9f8e2a4b7c1d6e3f5a0b";
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 let currentView = "columns";
 let latestTelemetry = null;
 const expandedServices = new Set();
@@ -369,6 +379,11 @@ function renderColumnsView(data) {
   listEl.innerHTML = services
     .map((svc) => {
       const pub = PUBLIC_LABELS[svc.id] || { name: svc.name, desc: svc.role, route: "Dedikovaná síť" };
+      const safeId = escapeHtml(svc.id);
+      const safeState = escapeHtml(svc.state);
+      const safeName = escapeHtml(pub.name);
+      const safeDesc = escapeHtml(pub.desc);
+      const safeRoute = escapeHtml(pub.route || "Dedikovaný uzel");
       const stText = stateNames[svc.state] || "Běží";
       const uptimeText = svc.standby && !svc.up ? "Připraven" : `${Number(svc.uptime_pct).toFixed(1)} %`;
       const bars = svc.bars || [];
@@ -378,41 +393,41 @@ function renderColumnsView(data) {
       const colsHtml = bars
         .map(
           (bar, idx) =>
-            `<div class="uptime-col" data-status="${bar.status}" data-idx="${idx}"><span class="uptime-col-fill"></span></div>`
+            `<div class="uptime-col" data-status="${escapeHtml(bar.status)}" data-idx="${idx}"><span class="uptime-col-fill"></span></div>`
         )
         .join("");
 
       const defaultFoot =
-        svc.latency_ms != null ? `Odezva ${svc.latency_ms} ms` : "Přejeď myší přes sloupec pro detail";
+        svc.latency_ms != null ? `Odezva ${Number(svc.latency_ms)} ms` : "Přejeď myší přes sloupec pro detail";
 
       const latencyBadge =
-        svc.latency_ms != null ? `<span class="service-latency-pill">${svc.latency_ms} ms</span>` : "";
+        svc.latency_ms != null ? `<span class="service-latency-pill">${Number(svc.latency_ms)} ms</span>` : "";
 
       const avgLatText =
         svc.avg_latency_ms != null
           ? `${Number(svc.avg_latency_ms).toFixed(0)} ms`
           : svc.latency_ms != null
-          ? `${svc.latency_ms} ms`
+          ? `${Number(svc.latency_ms)} ms`
           : "N/A";
 
       const outagesCount = bars.filter((b) => b.status === "down" || b.status === "degraded").length;
 
       return `
-      <article class="service-row ${isExpanded ? "is-expanded" : ""}" id="svc-row-${svc.id}" data-service-id="${svc.id}" data-state="${svc.state}">
+      <article class="service-row ${isExpanded ? "is-expanded" : ""}" id="svc-row-${safeId}" data-service-id="${safeId}" data-state="${safeState}">
         <!-- Kompaktní hlavička s okamžitým stavem (vždy viditelná) -->
-        <button type="button" class="service-row-head" onclick="toggleServiceDetail('${svc.id}')" aria-expanded="${isExpanded ? "true" : "false"}">
+        <button type="button" class="service-row-head" onclick="toggleServiceDetail('${safeId}')" aria-expanded="${isExpanded ? "true" : "false"}">
           <div class="service-row-left">
             <span class="service-state-dot" aria-hidden="true"></span>
             <div class="service-title-wrap">
-              <h2 class="service-name">${pub.name}</h2>
-              <span class="service-desc">${pub.desc}</span>
+              <h2 class="service-name">${safeName}</h2>
+              <span class="service-desc">${safeDesc}</span>
             </div>
           </div>
           <div class="service-row-right tabular-nums">
             ${latencyBadge}
             <span class="service-uptime">${uptimeText}</span>
-            <span class="service-state-badge service-state--${svc.state}">
-              <span>${stText}</span>
+            <span class="service-state-badge service-state--${safeState}">
+              <span>${escapeHtml(stText)}</span>
             </span>
             <span class="service-chevron" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -423,7 +438,7 @@ function renderColumnsView(data) {
         </button>
 
         <!-- Rozbalovací detail s grafem dostupnosti a technickými metrikami -->
-        <div class="service-detail-drawer" id="drawer-${svc.id}">
+        <div class="service-detail-drawer" id="drawer-${safeId}">
           <div class="service-drawer-inner">
 
             <!-- Bento Spec Bar se stručnými údaji o uzlu -->
@@ -438,7 +453,7 @@ function renderColumnsView(data) {
               </div>
               <div class="spec-cell">
                 <span class="spec-label">Směrování a uzel</span>
-                <strong class="spec-value spec-value--route">${pub.route || "Dedikovaný uzel"}</strong>
+                <strong class="spec-value spec-value--route">${safeRoute}</strong>
               </div>
               <div class="spec-cell">
                 <span class="spec-label">Incidenty za 24h</span>
@@ -450,7 +465,7 @@ function renderColumnsView(data) {
             <div class="service-graph-wrap">
               <div class="graph-legend-strip">
                 <span class="graph-legend-title">Historie dostupnosti za posledních 24 hodin</span>
-                <span class="col-hover-info tabular-nums" id="hover-${svc.id}" data-default="${defaultFoot}">${defaultFoot}</span>
+                <span class="col-hover-info tabular-nums" id="hover-${safeId}" data-default="${escapeHtml(defaultFoot)}">${escapeHtml(defaultFoot)}</span>
               </div>
               <div class="uptime-columns-track" style="--cols:${colsCount}">
                 ${colsHtml}
@@ -522,6 +537,7 @@ function renderIncidents(incidents) {
     .slice(0, 6)
     .map((inc) => {
       const pub = PUBLIC_LABELS[inc.service_id] || { name: inc.service_name };
+      const safeName = escapeHtml(pub.name);
       const isResolved = Boolean(inc.resolved);
       const statusText = isResolved ? "Vyřešeno" : "Probíhá výpadek";
       const statusColor = isResolved ? "var(--green)" : "var(--red)";
@@ -531,8 +547,8 @@ function renderIncidents(incidents) {
 
       return `
       <div class="incident-row ${isResolved ? "" : "incident-row--active"}">
-        <span class="incident-name">${pub.name}</span>
-        <span class="incident-meta tabular-nums">${timeText} &bull; <strong style="color:${statusColor}">${statusText}</strong></span>
+        <span class="incident-name">${safeName}</span>
+        <span class="incident-meta tabular-nums">${escapeHtml(timeText)} &bull; <strong style="color:${statusColor}">${statusText}</strong></span>
       </div>
     `;
     })

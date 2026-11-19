@@ -117,7 +117,7 @@ button:active,
 }
 
 .nav-logo-img {
-  border-radius: 7px;
+  object-fit: contain;
 }
 
 .nav-logo-text {
